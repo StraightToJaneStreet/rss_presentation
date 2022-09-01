@@ -16,8 +16,161 @@
 	<body>
 		<div class="reveal">
 			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
+        <section data-markdown>
+          <textarea data-template>
+            ## WebGL
+          </textarea>
+        </section>
+        <section>
+          <h2>Canvas / Context</h2>
+          <section>
+            <p>The first thing we need in order to use WebGL for rendering is a canvas.</p>
+            <pre><code class="language-html" data-trim data-line-numbers>
+              <canvas id="glApp" width="500" height="500">
+              </canvas>
+            </code></pre>
+          </section>
+          <section>
+            <pre><code class="language-js" data-trim data-line-numbers>
+              const canvas = docuemnt.getElementById("glApp");
+              const gl = canvas.getContext('webgl');
+            </code></pre>
+          </section>
+        </section>
+        <section>
+          <h2>Conveyor</h2>
+          <section data-markdown>
+            <textarea data-template>
+              OpenGL simplified rendering steps
+              1. Vertex data
+              2. Vertex shader
+              3. Tesselation
+              3. Geometry shader
+              4. Rasterization
+              5. Fragment shader
+              6. Pre-sampling
+              7. Sampling
+            </textarea>
+          </section>
+          <section>
+            <h3>WebGL 2.0 pipeline</h3>
+            <img src="./images/pipeline.png" alt="OpenGL Conveyor">
+          </section>
+        </section>
+        <section>
+          <h2>Vertex data</h2>
+          <section>
+            <p>All verticies data must be stored in GPU memory</p>
+            <p>A BufferObject type is used to manage data in GPU</p>
+          </section>
+          <section>
+            <pre><code class="language-cpp" data-trim data-line-numbers>
+              const positions = new Float32Array([
+                1.0, 1.0,
+                -1.0, 1.0,
+                1.0, -1.0,
+                -1.0, -1.0
+              ]);
+          
+              const positionBuffer = gl.createBuffer();
+
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+              gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+            </code></pre> 
+          </section>
+        </section>
+        <section>
+          <h2>Shaders</h2>
+          <section>
+            <h3>Vertex shader</h3>
+            <pre><code class="language-glsl" data-trim data-line-numbers>
+              attribute vec3 aVertexPosition;
+              attribute vec4 aVertexColor;
+        
+              uniform mat4 uMVMatrix; 
+              uniform mat4 uPMatrix;
+        
+              varying lowp vec4 vColor;
+        
+              void main(void) {
+                vec4 position = vec4(aVertexPosition, 1.0);
+                gl_Position = uPMatrix * uMVMatrix * position;
+                vColor = aVertexColor;
+              }
+            </code></pre>
+          </section>
+          <section>
+            <h3>Fragment shader</h3>
+            <pre><code class="language-glsl" data-trim data-line-numbers>
+              varying lowp vec4 vColor;
+
+              void main(void) {
+                gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+              }
+            </code></pre>
+          </section>
+        </section>
+        <section data-markdown>
+          <textarea data-template>
+            ### Shaders compilation
+            ```cpp [1-11|1-2|4-5|7-8|10-11]
+              const fShader = gl.createShader(gl.FRAGMENT_SHADER);
+              const vShader = gl.createShader(gl.VERTEX_SHADER);
+  
+              gl.shaderSource(fShader, fSource);
+              gl.shaderSource(vShader, vSource);
+  
+              gl.compileShader(fShader);
+              gl.compileShader(vShader);
+  
+              gl.getShaderParameter(fShader, gl.COMPILE_STATUS);
+              gl.getShaderParameter(vShader, gl.COMPILE_STATUS);
+            ```
+          </textarea>
+        </section>
+        <section data-markdown>
+          <textarea data-template>
+            ### Rendering program
+    
+            ```cpp [1-10|1|3-4|6|8|10]
+              program = gl.createProgram();
+  
+              gl.attachShader(shaderProgram, vertexShader);
+              gl.attachShader(shaderProgram, fragmentShader);
+  
+              gl.linkProgram(shaderProgram);
+  
+              gl.getProgramParameter(program, gl.LINK_STATUS);
+  
+              gl.useProgram(program)
+            ```
+          </textarea>
+        </section>
+        <section>
+          <h3>Buffers</h3>
+
+        </section>
+        <section>
+          <h3>Attributes/Uniforms locations</h3>
+          <section data-markdown>
+            <textarea data-template>
+              If we need to bind data from ram memory to memory allocated in graphical card we have must to know binding locations
+              of the shader program.
+              
+              - `gl.getAttribLocation / gl.enableVertexAttribArray`
+              - `gl.getUniformLocation / gl.uniformMatrix`
+            </textarea>
+          </section>
+          <section>
+              <pre><code class="language-js" data-line-numbers="|1|2" data-trim data-noescape>
+              vPosition = gl.getAttribLocation(program, "positions");
+              gl.enableVertexAttribArray(vPosition);
+              </code></pre>
+          </section>
+          <section>
+          </section>
+        </section>
+       
 			</div>
 		</div>
 
@@ -26,13 +179,8 @@
 		<script src="plugin/markdown/markdown.js"></script>
 		<script src="plugin/highlight/highlight.js"></script>
 		<script>
-			// More info about initialization & config:
-			// - https://revealjs.com/initialization/
-			// - https://revealjs.com/config/
 			Reveal.initialize({
 				hash: true,
-
-				// Learn about plugins: https://revealjs.com/plugins/
 				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
 			});
 		</script>
